@@ -1,11 +1,3 @@
-﻿# CMakeList.txt : CMake project for Snake-Game, include source and define
-# project specific logic here.
-#
-cmake_minimum_required (VERSION 3.8)
-
-project ("Snake-Game")
-
-# Add source to this project's executable.
-add_executable (Snake-Game "Snake-Game.cpp" "Snake-Game.h")
-
-# TODO: Add tests and install targets if needed.
+﻿cmake_minimum_required (VERSION 3.8)
+project ("Tic-Tac-Toe-Game")
+add_executable (Tic-Tac-Toe-Game "Tic-Tac-Toe.cpp" "Tic-Tac-Toe.h")
