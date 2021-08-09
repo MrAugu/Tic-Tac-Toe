@@ -1,4 +1,4 @@
-﻿#include "Snake-Game.h"
+﻿#include "Tic-Tac-Toe.h"
 
 using namespace std;
 
@@ -70,11 +70,61 @@ public:
 		}
 	}
 
+	void check_for_wins() {
+		const char* winning_moves[] = {
+			"123",
+			"456",
+			"789",
+			"147",
+			"258",
+			"369",
+			"159",
+			"357"
+		};
+
+		for (int i = 0; i < 8; i++) {
+			bool winner = true;
+			char previous_grid = '0';
+			const char* winning_move = winning_moves[i];
+
+			for (int j = 0; j < 3; j++) {
+				char character = winning_move[j];
+
+				int number = character - '0';
+				int grid_space = number - 1;
+
+				int row = grid_space / 3;
+				int col = grid_space % 3;
+
+				char grid_char = grid[row][col];
+
+				if (previous_grid == '0') {
+					previous_grid = grid_char;
+				}
+				else if (previous_grid == grid_char) {
+					continue;
+				}
+				else {
+					winner = false;
+					break;
+				}
+			}
+
+			if (winner) {
+				puts("*********** WE HAVE A WINNER!!! ***********");
+				printf("* Looks like the player with %c won.\n", previous_grid);
+				puts("*********** !!CONGRATULATIONS!! ***********");
+				exit(0);
+			}
+		}
+	}
+
 	Game() {
 		generate_grid();
 		while (true) {
 			show_grid();
 			ask_turn();
+			check_for_wins();
 		}
 	}
 };
