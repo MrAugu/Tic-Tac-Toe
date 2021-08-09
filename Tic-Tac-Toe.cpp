@@ -30,7 +30,7 @@ public:
 	};
 
 	void show_grid() {
-		printf("\n   -------------\n");
+		printf("   -------------\n");
 		for (int x = 0; x < grid_size; x++) {
 			for (int y = 0; y < grid_size; y++) {
 				string toDisplay = "";
@@ -42,55 +42,40 @@ public:
 		}
 	};
 
-	bool ask_turn() {
+	bool ask_turn(char& userSymbol) {
+		printf("[You] Where you woud like to play? ");
+		
 		string input;
-		puts("Where you woud like to play?");
-		getline(cin, input);
-		if (input != "") {
-			char entered = input.c_str()[0];
-			if (entered >= '1' && entered <= '9') {
-				int entered_number = entered - '0';
-				int index = entered_number - 1;
-				
-				Position pos = getCoords(index);
-				char grid_position = grid[pos.x][pos.y];
+		bool selected = false;
 
-				if (grid_position == 'X' || grid_position == 'O') {
-					puts("Looks like that grid position has been taken up already.");
-				}
-				else {
-					grid[pos.x][pos.y] = grid_position;
-					puts("What would you like to play?");
-					getline(cin, input);
-					if (input != "") {
-						char entered_choice = input.c_str()[0];
-						if (entered_choice == 'x' || entered_choice == 'X') {
-							grid[pos.x][pos.y] = 'X';
-							return true;
-						} 
-						else if (entered_choice == 'o' || entered_choice == 'O') {
-							grid[pos.x][pos.y] = 'O';
-							return true;
-						}
-						else puts("Invalid character used. You may use either X or O.");
+		while (!selected) {
+			getline(cin, input);
+			if (input != "") {
+				char entered = input.c_str()[0];
+				if (entered >= '1' && entered <= '9') {
+					int entered_number = entered - '0';
+					int index = entered_number - 1;
+
+					Position pos = getCoords(index);
+					char grid_position = grid[pos.x][pos.y];
+
+					if (grid_position == 'X' || grid_position == 'O') {
+						printf("[You] Looks like that grid position has been taken up already, chose another.. ");
 					}
 					else {
-						puts("You have to choose between x or o.");
+						grid[pos.x][pos.y] = userSymbol;
+						selected = true;
 					}
 				}
-			}
-			else {
-				puts("You have to plat through range 1-9.");
+				else {
+					printf("[You] You have to select a number between 1 and 9.. ");
+				}
 			}
 		}
-		else {
-			puts("You need to enter something.");
-		}
-
-		return false;
+		return selected;
 	}
 
-	bool check_for_wins() {
+	char check_for_wins() {
 		const char* winning_moves[] = {
 			"123",
 			"456",
@@ -102,6 +87,7 @@ public:
 			"357"
 		};
 		int amountOfWiningPermutations = 8;
+		char winnerChar = '0';
 
 		for (int i = 0; i < amountOfWiningPermutations; i++) {
 			bool winner = true;
@@ -121,6 +107,7 @@ public:
 					previous_grid = grid_char;
 				}
 				else if (previous_grid == grid_char) {
+					winnerChar = previous_grid;
 					continue;
 				}
 				else {
@@ -130,34 +117,21 @@ public:
 			}
 
 			if (winner) {
-				return true;
+				return winnerChar;
 			}
 		}
-		return false;
+		return winnerChar;
 	}
 
-	void compute_player_turn(vector<int> availableMutations) {
-		int computer_position = (rand() % availableMutations.size()) + 1;
-		int index = computer_position - 1;
-		Position pos = getCoords(availableMutations[index]);
-		
-		int computer_char = (rand() % 2) + 1;
-		char computer_pick;
-
-		if (computer_char == 1) {
-			computer_pick = 'X';
-		}
-		else {
-			computer_pick = 'O';
-		}
-
-		printf("Computer picked %c, (%d; %d)", computer_pick, pos.x, pos.y);
-		grid[pos.x][pos.y] = computer_pick;
+	void compute_player_turn(vector<int> availableMutations, char& computerSymbol) {
+		int computer_position = rand() % availableMutations.size();
+		Position pos = getCoords(availableMutations[computer_position] - 1);
+		grid[pos.x][pos.y] = computerSymbol;
 	}
 
 	vector<int> getPossibleMutations() {
 		vector<int> indexArray;
-		for (int i = 1; i <= (grid_size * grid_size); i++) {
+		for (int i = 0; i < (grid_size * grid_size); i++) {
 			Position pos = getCoords(i);
 			char charAtPos = grid[pos.x][pos.y];
 			if (charAtPos == 'X' || charAtPos == 'O') {
@@ -178,25 +152,83 @@ public:
 	Game() {
 		generate_grid();
 	}
+
+	void promptSymbol(char& userSymbol, char& computerSymbol) {
+		string choiceInput;
+
+		printf("[You] Choose the sign you want to play, it can be X or O.. ");
+
+		while (userSymbol == '0' || computerSymbol == '0') {
+			cin >> choiceInput;
+			char choiceCharacter = choiceInput.c_str()[0];
+
+			if (choiceCharacter == 'x' || choiceCharacter == 'X') {
+				userSymbol = 'X';
+				computerSymbol = 'O';
+			}
+			else if (choiceCharacter == 'o' || choiceCharacter == 'O') {
+				userSymbol = 'O';
+				computerSymbol = 'X';
+			}
+			else {
+				printf("[You] Invalid sign, pick again.. ");
+			}
+		}
+		printf("[You] Playing as %c!\n", userSymbol);
+		printf("[Computer] Playing as %c!\n", computerSymbol);
+	}
 };
 
 int main(int argc, char *argv[]) {
+	puts("################################################################");
+	puts("#                   git:MrAugu/Tic-Tac-Toe                     #");
+	puts("#                    Made by MrAugu#7017                       #");
+	puts("################################################################");
+	printf("\n");
+
 	Game game;
 	int turn = 0;
+	char userSymbol = '0';
+	char computerSymbol = '0';
 
-	while (!game.check_for_wins()) {
-		game.show_grid();
+	game.promptSymbol(userSymbol, computerSymbol);
+	cin.ignore();
+
+	char winner = '0';
+	vector<int> availableMutations = {0,1,2,3,4,5,6,7,8};
+
+	game.show_grid();
+	while (winner == '0' && availableMutations.size() > 0) {
 		vector<int> availableMutations = game.getPossibleMutations();
-		if (turn > 0 && availableMutations.size() > 0) {
-			puts("Computer's turn, press an key to continue.");
+		if (turn > 0) {
+			printf("[Computer] Computer's turn, press enter to continue.. ");
 			cin.ignore();
-			game.compute_player_turn(availableMutations);
+			game.compute_player_turn(availableMutations, computerSymbol);
+			game.show_grid();
 		}
+		game.ask_turn(userSymbol);
 		game.show_grid();
-		game.ask_turn();
 		turn++;
+		winner = game.check_for_wins();
 	}
-	puts("To exit, press any key.");
+
+	if (winner == '0') {
+		puts("---------- EVEN MATCH ----------");
+		puts("Nobody won, there are no more possible mutations. ");
+		puts("--------------------------------");
+	}
+	else if (winner == userSymbol) {
+		puts("---------- YOU'VE WON ----------");
+		puts("You've won the game, congratulations. ");
+		puts("--------------------------------");
+	}
+	else if (winner == computerSymbol) {
+		puts("--------- YOU'VE LOST ----------");
+		puts("Looks like you've lost this game?!");
+		puts("--------------------------------");
+	}
+
+	puts("*** To exit, press any key... ***");
 	cin.ignore();
 	return 0;
 }
